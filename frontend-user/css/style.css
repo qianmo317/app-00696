@@ -1,0 +1,418 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap");
+
+:root {
+  /* Color Palette - Dark Luxury (No Purple) */
+  --bg-main: #0f172a; /* Slate 900 */
+  --bg-panel: #1e293b; /* Slate 800 */
+  --text-primary: #f1f5f9; /* Slate 100 */
+  --text-secondary: #94a3b8; /* Slate 400 */
+
+  --accent-color: #0ea5e9; /* Sky 500 - Primary Action */
+  --accent-hover: #0284c7; /* Sky 600 */
+  --highlight-cell: #1e3a8a; /* Blue 900 - Selected Cell Background */
+  --related-cell: #1e293b; /* Slate 800 - Same num/row/col */
+  --same-number: #0c4a6e; /* Sky 900 */
+
+  --success: #10b981; /* Emerald 500 */
+  --error: #ef4444; /* Red 500 */
+  --gold: #f59e0b; /* Amber 500 */
+
+  --border-color: #334155; /* Slate 700 */
+  --border-thick: #64748b; /* Slate 500 */
+
+  /* Dimensions */
+  --header-height: 60px;
+  --max-board-size: 500px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family:
+    "Outfit",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Background Image Overlay */
+.bg-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Using a Picsum image as a subtle classy background, blurred */
+  background: url("https://picsum.photos/1920/1080?grayscale") no-repeat center
+    center/cover;
+  opacity: 0.05;
+  z-index: -1;
+  filter: blur(5px);
+}
+
+/* Header */
+header {
+  height: var(--header-height);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24vw; /* PC padding */
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+h1 {
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+  background: linear-gradient(to right, #e2e8f0, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Custom Styled Difficulty Selector */
+.difficulty-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: linear-gradient(135deg, var(--bg-panel) 0%, rgba(30, 41, 59, 0.8) 100%);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 10px 40px 10px 16px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.difficulty-select:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+}
+
+.difficulty-select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+}
+
+.difficulty-select option {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  padding: 10px;
+}
+
+.timer {
+  font-family: monospace;
+  font-size: 1.2rem;
+  color: var(--accent-color);
+}
+
+/* Main Content */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  gap: 20px;
+}
+
+/* Game Info Bar */
+.game-info {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: var(--max-board-size);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Sudoku Board */
+.sudoku-board {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  width: 100%;
+  max-width: var(--max-board-size);
+  aspect-ratio: 1;
+  background: var(--bg-main);
+  border: 2px solid var(--border-thick);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  border-radius: 4px; /* Slight rounding on outer corners */
+  overflow: hidden;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.1s;
+  position: relative;
+  color: var(--text-secondary); /* User entered numbers */
+}
+
+.cell.initial {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Thicker Borders for 3x3 Boxes */
+.cell:nth-child(3n) {
+  border-right: 2px solid var(--border-thick);
+}
+.cell:nth-child(9n) {
+  border-right: none;
+}
+.cell:nth-child(n + 19):nth-child(-n + 27),
+.cell:nth-child(n + 46):nth-child(-n + 54) {
+  border-bottom: 2px solid var(--border-thick);
+}
+.cell:nth-child(n + 73) {
+  border-bottom: none;
+}
+
+/* Cell States */
+.cell.selected {
+  background-color: var(--highlight-cell);
+  color: white;
+}
+.cell.highlighted {
+  background-color: var(--related-cell);
+}
+.cell.same-number {
+  background-color: var(--same-number);
+  color: var(--accent-color);
+}
+.cell.error {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: var(--error);
+}
+.cell.animate-pop {
+  animation: pop 0.2s ease-out;
+}
+
+/* Notes inside cell */
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.note-num {
+  font-size: 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-secondary);
+}
+
+/* Game Controls (Undo, Erase, Note, Hint) */
+.game-controls {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: var(--max-board-size);
+  margin-top: 10px;
+}
+
+.control-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.control-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.control-btn:hover,
+.control-btn.active {
+  color: var(--accent-color);
+}
+.control-btn.active .indicator {
+  background-color: var(--accent-color);
+}
+
+.indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--bg-panel);
+  color: var(--text-primary);
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Number Pad (Mobile/Desktop friendly) */
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  width: 100%;
+  max-width: var(--max-board-size);
+  gap: 5px;
+  margin-top: 20px;
+}
+
+.num-btn {
+  aspect-ratio: 1; /* Make items square */
+  /* If 1 row is too small on mobile, fallback to flex wrapping or media query elsewhere, but repeat(9) works on most modern phones for simple numbers */
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  color: var(--accent-color);
+  font-size: 1.5rem; /* Larger font */
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.num-btn:active {
+  transform: scale(0.95);
+  background: var(--accent-color);
+  color: white;
+}
+
+.num-btn:hover {
+  border-color: var(--accent-color);
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: var(--bg-panel);
+  padding: 30px;
+  border-radius: 16px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  max-width: 90%;
+  width: 350px;
+}
+
+.modal-title {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: var(--gold);
+}
+
+.btn-primary {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-top: 20px;
+  width: 100%;
+  font-weight: 600;
+}
+
+/* Animations */
+@keyframes pop {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 500px) {
+  header {
+    padding: 0 20px; /* Mobile padding */
+  }
+
+  .numpad {
+    /* On very small screens, 9 columns might be tight.
+           But usually playable. Let's stack if needed, but 1-9 in a row is standard for sudoku apps.
+           Maybe make it 2 rows if absolutely needed, but 1 row is cleaner.
+           Let's increase button size by using grid gap efficiently.
+        */
+    gap: 3px;
+  }
+  .num-btn {
+    font-size: 1.2rem;
+    border-radius: 4px;
+  }
+  main {
+    padding: 10px;
+  }
+
+  .game-controls {
+    gap: 15px; /* Increase gap for touch targets */
+  }
+}
