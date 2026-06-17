@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mistakes: 0,
         maxMistakes: 3,
         isPlaying: false,
+        isPaused: false,
         hintsLeft: 3,
         selectedCell: { row: -1, col: -1 },
         isNoteMode: false,
@@ -35,6 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnErase = document.getElementById('btn-erase');
     const btnNote = document.getElementById('btn-note');
     const btnHint = document.getElementById('btn-hint');
+    const btnPause = document.getElementById('btn-pause');
+    const pauseLabel = document.getElementById('pause-label');
+    const pauseIconPath = document.getElementById('pause-icon-path');
+    const pauseOverlay = document.getElementById('pause-overlay');
     const numPadBtns = document.querySelectorAll('.num-btn');
     
     // Modals
@@ -45,6 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Timer Interval
     let timerInt;
+
+    // Pause / play icon paths for the control button
+    const PAUSE_ICON_D = 'M6 4h4v16H6V4zm8 0h4v16h-4V4z';
+    const PLAY_ICON_D = 'M8 5v14l11-7z';
 
     // --- Initialization ---
     init();
@@ -88,6 +97,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Keyboard Input
         document.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.code === 'Space') {
+                if (state.isPlaying || state.isPaused) {
+                    e.preventDefault();
+                    togglePause();
+                }
+                return;
+            }
             if (!state.isPlaying) return;
             if (e.key >= '1' && e.key <= '9') {
                 handleInput(parseInt(e.key));
@@ -109,7 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnErase.addEventListener('click', handleErase);
         btnNote.addEventListener('click', toggleNoteMode);
         btnHint.addEventListener('click', handleHint);
-        
+        btnPause.addEventListener('click', togglePause);
+        pauseOverlay.addEventListener('click', togglePause);
+
         // Numpad
         numPadBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -139,9 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
         state.mistakes = 0;
         state.hintsLeft = 3;
         state.isPlaying = true;
+        state.isPaused = false;
         state.history = [];
         state.selectedCell = { row: -1, col: -1 };
 
+        resetPauseUI();
         difficultyDisplay.textContent = getDifficultyName(difficulty);
         difficultySelect.value = difficulty;
 
@@ -155,7 +175,11 @@ document.addEventListener('DOMContentLoaded', () => {
         state = savedState;
         // Restore Sets for notes as JSON stringify kills them
         state.notes = state.notes.map(row => row.map(cell => new Set(cell)));
-        
+        // Never restore a paused state across sessions
+        state.isPaused = false;
+        state.isPlaying = true;
+        resetPauseUI();
+
         difficultyDisplay.textContent = getDifficultyName(state.difficulty);
         difficultySelect.value = state.difficulty;
         
@@ -358,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleUndo() {
-        if (state.history.length === 0) return;
+        if (!state.isPlaying || state.history.length === 0) return;
         const prevState = state.history.pop();
         
         // Restore essential state
@@ -434,6 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function toggleNoteMode() {
+        if (!state.isPlaying) return;
         state.isNoteMode = !state.isNoteMode;
         if (state.isNoteMode) {
             btnNote.classList.add('active');
@@ -442,6 +467,31 @@ document.addEventListener('DOMContentLoaded', () => {
             btnNote.classList.remove('active');
             noteIndicator.textContent = 'OFF';
         }
+    }
+
+    function togglePause() {
+        if (state.isPaused) {
+            // Resume: timer keeps running from where it stopped
+            state.isPaused = false;
+            state.isPlaying = true;
+            pauseOverlay.classList.remove('open');
+            pauseLabel.textContent = '暂停';
+            pauseIconPath.setAttribute('d', PAUSE_ICON_D);
+        } else {
+            // Can't pause when the game is not in progress (won/lost)
+            if (!state.isPlaying) return;
+            state.isPaused = true;
+            state.isPlaying = false;
+            pauseOverlay.classList.add('open');
+            pauseLabel.textContent = '继续';
+            pauseIconPath.setAttribute('d', PLAY_ICON_D);
+        }
+    }
+
+    function resetPauseUI() {
+        pauseOverlay.classList.remove('open');
+        pauseLabel.textContent = '暂停';
+        pauseIconPath.setAttribute('d', PAUSE_ICON_D);
     }
 
     function getDifficultyName(d) {
