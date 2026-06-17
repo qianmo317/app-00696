@@ -158,6 +158,13 @@ main {
   font-size: 0.9rem;
 }
 
+/* Board Wrapper (positions pause overlay) */
+.board-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: var(--max-board-size);
+}
+
 /* Sudoku Board */
 .sudoku-board {
   display: grid;
@@ -376,6 +383,46 @@ main {
   margin-top: 20px;
   width: 100%;
   font-weight: 600;
+}
+
+/* Pause Overlay (covers the board while paused) */
+.pause-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg-panel);
+  background: color-mix(in srgb, var(--bg-main) 88%, transparent);
+  backdrop-filter: blur(6px);
+  border-radius: 4px;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+.pause-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.pause-overlay-icon {
+  width: 64px;
+  height: 64px;
+  fill: var(--accent-color);
+  margin-bottom: 16px;
+}
+.pause-overlay-text {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 2px;
+}
+.pause-overlay-hint {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
 /* Animations */
