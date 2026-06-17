@@ -158,19 +158,100 @@ main {
   font-size: 0.9rem;
 }
 
+/* Board Container */
+.board-container {
+  position: relative;
+  width: 100%;
+  max-width: var(--max-board-size);
+}
+
 /* Sudoku Board */
 .sudoku-board {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
   grid-template-rows: repeat(9, 1fr);
   width: 100%;
-  max-width: var(--max-board-size);
   aspect-ratio: 1;
   background: var(--bg-main);
   border: 2px solid var(--border-thick);
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
   border-radius: 4px; /* Slight rounding on outer corners */
   overflow: hidden;
+}
+
+/* Pause Button Icons */
+#btn-pause .icon-play {
+  display: none;
+}
+
+#btn-pause.paused .icon-pause {
+  display: none;
+}
+
+#btn-pause.paused .icon-play {
+  display: block;
+}
+
+/* Pause Overlay */
+.pause-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.pause-overlay::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-main);
+  opacity: 0.9;
+  border-radius: 4px;
+}
+
+.pause-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.pause-content {
+  position: relative;
+  text-align: center;
+  color: var(--text-primary);
+  z-index: 1;
+}
+
+.pause-icon {
+  width: 64px;
+  height: 64px;
+  fill: var(--accent-color);
+  margin-bottom: 16px;
+}
+
+.pause-content p {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.pause-hint {
+  font-size: 0.9rem !important;
+  color: var(--text-secondary);
+  font-weight: 400 !important;
 }
 
 .cell {
