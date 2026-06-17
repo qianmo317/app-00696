@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mistakes: 0,
         maxMistakes: 3,
         isPlaying: false,
+        isPaused: false,
         hintsLeft: 3,
         selectedCell: { row: -1, col: -1 },
         isNoteMode: false,
@@ -29,6 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const difficultyDisplay = document.getElementById('difficulty-display');
     const hintCountEl = document.getElementById('hint-count');
     const noteIndicator = document.getElementById('note-indicator');
+    const pauseOverlay = document.getElementById('pause-overlay');
+    const btnPause = document.getElementById('btn-pause');
+    const btnPauseText = document.getElementById('btn-pause-text');
     
     // Buttons
     const btnUndo = document.getElementById('btn-undo');
@@ -88,7 +92,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Keyboard Input
         document.addEventListener('keydown', (e) => {
-            if (!state.isPlaying) return;
+            if (e.key === ' ' || e.code === 'Space') {
+                e.preventDefault();
+                if (state.isPlaying) {
+                    togglePause();
+                }
+                return;
+            }
+            if (!state.isPlaying || state.isPaused) return;
             if (e.key >= '1' && e.key <= '9') {
                 handleInput(parseInt(e.key));
             } else if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -109,6 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btnErase.addEventListener('click', handleErase);
         btnNote.addEventListener('click', toggleNoteMode);
         btnHint.addEventListener('click', handleHint);
+        btnPause.addEventListener('click', togglePause);
+        pauseOverlay.addEventListener('click', togglePause);
         
         // Numpad
         numPadBtns.forEach(btn => {
@@ -139,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.mistakes = 0;
         state.hintsLeft = 3;
         state.isPlaying = true;
+        state.isPaused = false;
         state.history = [];
         state.selectedCell = { row: -1, col: -1 };
 
@@ -148,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderBoard();
         startTimer();
         updateUI();
+        updatePauseUI();
         saveGame();
     }
 
@@ -155,6 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state = savedState;
         // Restore Sets for notes as JSON stringify kills them
         state.notes = state.notes.map(row => row.map(cell => new Set(cell)));
+        if (state.isPaused === undefined) state.isPaused = false;
         
         difficultyDisplay.textContent = getDifficultyName(state.difficulty);
         difficultySelect.value = state.difficulty;
@@ -162,6 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderBoard();
         startTimer();
         updateUI();
+        updatePauseUI();
     }
 
     function createEmptyNotes() {
@@ -218,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function selectCell(row, col) {
-        if (!state.isPlaying) return;
+        if (!state.isPlaying || state.isPaused) return;
         
         state.selectedCell = { row, col };
         highlightBoard();
@@ -267,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleInput(num) {
-        if (!state.isPlaying) return;
+        if (!state.isPlaying || state.isPaused) return;
         const { row, col } = state.selectedCell;
         if (row === -1) return;
         
@@ -345,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleErase() {
-        if (!state.isPlaying) return;
+        if (!state.isPlaying || state.isPaused) return;
         const { row, col } = state.selectedCell;
         if (row === -1) return;
         if (state.initialBoard[row][col] !== 0) return;
@@ -358,7 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleUndo() {
-        if (state.history.length === 0) return;
+        if (!state.isPlaying || state.isPaused || state.history.length === 0) return;
         const prevState = state.history.pop();
         
         // Restore essential state
@@ -386,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function startTimer() {
         clearInterval(timerInt);
         timerInt = setInterval(() => {
-            if (!state.isPlaying) return;
+            if (!state.isPlaying || state.isPaused) return;
             state.timerSeconds++;
             timerEl.textContent = formatTime(state.timerSeconds);
             if (state.timerSeconds % 10 === 0) saveGame(); 
@@ -400,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleHint() {
-        if (state.hintsLeft <= 0 || !state.isPlaying) return;
+        if (state.hintsLeft <= 0 || !state.isPlaying || state.isPaused) return;
         
         // Find an empty cell
         const { row, col } = state.selectedCell;
@@ -444,6 +461,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function togglePause() {
+        if (!state.isPlaying) return;
+        state.isPaused = !state.isPaused;
+        updatePauseUI();
+        saveGame();
+    }
+
+    function updatePauseUI() {
+        if (state.isPaused) {
+            pauseOverlay.classList.add('active');
+            btnPauseText.textContent = '继续';
+            const pauseIcon = document.getElementById('btn-pause-icon');
+            pauseIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        } else {
+            pauseOverlay.classList.remove('active');
+            btnPauseText.textContent = '暂停';
+            const pauseIcon = document.getElementById('btn-pause-icon');
+            pauseIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        }
+    }
+
     function getDifficultyName(d) {
         return { 'easy': '初级', 'medium': '中级', 'hard': '高级' }[d];
     }
@@ -463,6 +501,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Win!
         state.isPlaying = false;
+        state.isPaused = false;
+        updatePauseUI();
         document.getElementById('win-difficulty').textContent = getDifficultyName(state.difficulty);
         document.getElementById('win-time').textContent = formatTime(state.timerSeconds);
         winModal.classList.add('open');
@@ -472,6 +512,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function gameOver() {
         state.isPlaying = false;
+        state.isPaused = false;
+        updatePauseUI();
         loseModal.classList.add('open');
         localStorage.removeItem('sudoku-state');
     }

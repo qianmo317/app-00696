@@ -158,6 +158,12 @@ main {
   font-size: 0.9rem;
 }
 
+.board-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: var(--max-board-size);
+}
+
 /* Sudoku Board */
 .sudoku-board {
   display: grid;
@@ -171,6 +177,50 @@ main {
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
   border-radius: 4px; /* Slight rounding on outer corners */
   overflow: hidden;
+}
+
+.pause-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: color-mix(in srgb, var(--bg-main) 85%, transparent);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+  border-radius: 4px;
+}
+
+.pause-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pause-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-primary);
+}
+
+.pause-icon {
+  width: 48px;
+  height: 48px;
+  fill: var(--accent-color);
+}
+
+.pause-content span {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--text-primary);
 }
 
 .cell {
